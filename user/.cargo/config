@@ -1,0 +1,8 @@
+[target.loongarch64-unknown-linux-gnu]
+rustflags = [
+    "-Clink-arg=-Tsrc/linker.ld",
+    "-Cforce-frame-pointers=yes",
+    "-Clink-arg=-nostdlib",
+    "-Clink-arg=-static"
+]
+linker = "loongarch64-linux-gnu-gcc"
