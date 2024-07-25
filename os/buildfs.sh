@@ -77,4 +77,5 @@ echo user_syscall copied.
 try_copy ../user/testcases ${U_FAT32_DIR}/fs/
 
 "$SUDO" umount ${U_FAT32_DIR}/fs
+"$SUDO" dd if=${U_FAT32} of=${U_FAT32_DIR}/ext4.bin
 echo "DONE"
