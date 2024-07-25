@@ -1,0 +1,32 @@
+# Copyright 2024 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 <LICENSE-APACHE or
+# https://www.apache.org/licenses/LICENSE-2.0> or the MIT license
+# <LICENSE-MIT or https://opensource.org/licenses/MIT>, at your
+# option. This file may not be copied, modified, or distributed
+# except according to those terms.
+
+[package]
+name = "ext4-view"
+version = "0.3.0"
+edition = "2021"
+license = "MIT OR Apache-2.0"
+repository = "https://github.com/nicholasbishop/ext4-view-rs"
+categories = ["filesystem", "embedded", "no-std"]
+description = "No-std compatible Rust library for reading ext4 filesystems"
+keywords = ["ext4", "filesystem", "no_std"]
+rust-version = "1.73"
+
+[workspace]
+members = ["xtask"]
+
+[features]
+std = []
+
+[dependencies]
+bitflags = "2.0.0"
+crc = "3.0.0"
+
+[package.metadata.docs.rs]
+all-features = true
+rustdoc-args = ["--cfg", "docsrs"]
