@@ -374,13 +374,8 @@ impl File for Pipe {
         )
     }
 
-    fn get_statx(&self) -> crate::fs::Statx {
-        todo!()
-    }
-
     fn get_file_type(&self) -> DiskInodeType {
-        // DiskInodeType::File
-        DiskInodeType::from_char('-')
+        DiskInodeType::File
     }
 
     fn info_dirtree_node(&self, dirnode_ptr: Weak<crate::fs::directory_tree::DirectoryTreeNode>) {

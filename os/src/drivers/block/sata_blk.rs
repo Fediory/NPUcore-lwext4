@@ -18,9 +18,9 @@ impl SataBlock {
 }
 
 impl BlockDevice for SataBlock {
-    fn read_block(&self, mut block_id: u64, buf: &mut [u8]) {
+    fn read_block(&self, mut block_id: usize, buf: &mut [u8]) {
         // 内核BLOCK_SZ为2048，SATA驱动中BLOCK_SIZE为512，四倍转化关系
-        block_id = block_id * (BLOCK_SZ as u64 / BLOCK_SIZE as u64);
+        block_id = block_id * (BLOCK_SZ / BLOCK_SIZE);
         for buf in buf.chunks_mut(BLOCK_SIZE) {
             self.0
                 .lock()
@@ -29,8 +29,8 @@ impl BlockDevice for SataBlock {
         }
     }
 
-    fn write_block(&self, mut block_id: u64, buf: &[u8]) {
-        block_id = block_id * (BLOCK_SZ as u64 / BLOCK_SIZE as u64);
+    fn write_block(&self, mut block_id: usize, buf: &[u8]) {
+        block_id = block_id * (BLOCK_SZ / BLOCK_SIZE);
         for buf in buf.chunks(BLOCK_SIZE) {
             self.0
                 .lock()
@@ -39,53 +39,6 @@ impl BlockDevice for SataBlock {
         }
     }
 }
-
-impl lwext4_rs::BlockDeviceInterface for SataBlock{
-    fn read_block(&mut self, buf: &mut [u8], mut block_id: u64, block_count: u32) -> lwext4_rs::Result<usize> {
-        // kernel BLOCK_SZ=2048, SATA BLOCK_SIZE=512，four times
-        block_id = block_id * (BLOCK_SZ as u64 / BLOCK_SIZE as u64);
-        for buf in buf.chunks_mut(BLOCK_SIZE) {
-            self.0
-                .lock()
-                .read_block(block_id, buf);
-            block_id += 1;
-        }
-        Ok(0)
-    }
-
-    fn write_block(&mut self, buf: &[u8], mut block_id: u64, block_count: u32) -> lwext4_rs::Result<usize> {
-        block_id = block_id * (BLOCK_SZ as u64 / BLOCK_SIZE as u64);
-        for buf in buf.chunks(BLOCK_SIZE) {
-            self.0
-                .lock()
-                .write_block(block_id, buf);
-            block_id += 1;
-        }
-        Ok(0)
-    }
-    
-    fn close(&mut self) -> lwext4_rs::Result<()> {
-        Ok(())
-    }
-
-    fn open(&mut self) -> lwext4_rs::Result<lwext4_rs::BlockDeviceConfig> {
-        Ok(lwext4_rs::BlockDeviceConfig{
-            block_size: BLOCK_SIZE as u32,
-            block_count: 999,
-            part_size: BLOCK_SIZE as u64 * 2,
-            part_offset: 0
-        })
-    }
-
-    fn lock(&mut self) -> lwext4_rs::Result<()> {
-        Ok(())
-    }
-
-    fn unlock(&mut self) -> lwext4_rs::Result<()> {
-        Ok(())
-    }
-}
-
 
 pub struct Provider;
 

@@ -59,10 +59,6 @@ impl File for Null {
         )
     }
 
-    fn get_statx(&self) -> crate::fs::Statx {
-        todo!()
-    }
-
     fn read_user(&self, offset: Option<usize>, buf: UserBuffer) -> usize {
         0
     }
@@ -72,8 +68,7 @@ impl File for Null {
     }
 
     fn get_file_type(&self) -> DiskInodeType {
-        // DiskInodeType::File
-        DiskInodeType::from_char('-')
+        DiskInodeType::File
     }
 
     fn info_dirtree_node(

@@ -30,7 +30,7 @@ pci = { path = "../dependency/pci" }
 isomorphic_drivers = { path = "../dependency/isomorphic_drivers" }
 #lwext4_rust = { path = "../dependency/lwext4_rust" }
 #ext4_view = { path = "../dependency/ext4-view-rs" }
-lwext4-rs = { path = "../dependency/ext4/lwext4-rs" }
+#lwext4-rs = { path = "../dependency/ext4/lwext4-rs" }
 #loongArch64 = "0.1.0"
 
 

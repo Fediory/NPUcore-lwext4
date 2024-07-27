@@ -1,5 +1,4 @@
-// use super::fat32::DiskInodeType;
-type DiskInodeType = lwext4_rs::FileType;
+use super::fat32::DiskInodeType;
 use crate::{mm::UserBuffer, syscall::errno::ENOTTY};
 use __alloc::string::String;
 use alloc::{
@@ -23,15 +22,12 @@ pub trait File: DowncastSync {
     fn write_user(&self, offset: Option<usize>, buf: UserBuffer) -> usize;
     fn get_size(&self) -> usize;
     fn get_stat(&self) -> Stat;
-    fn get_statx(&self) -> Statx;
     fn get_file_type(&self) -> DiskInodeType;
     fn is_dir(&self) -> bool {
-        self.get_file_type().is_dir()
-        // self.get_file_type() == DiskInodeType::Directory
+        self.get_file_type() == DiskInodeType::Directory
     }
     fn is_file(&self) -> bool {
-        self.get_file_type().is_file()
-        // self.get_file_type() == DiskInodeType::File
+        self.get_file_type() == DiskInodeType::File
     }
     fn info_dirtree_node(&self, dirnode_ptr: Weak<DirectoryTreeNode>);
     fn get_dirtree_node(&self) -> Option<Arc<DirectoryTreeNode>>;

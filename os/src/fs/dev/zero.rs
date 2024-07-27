@@ -69,13 +69,8 @@ impl File for Zero {
         buf.len()
     }
 
-    fn get_statx(&self) -> crate::fs::Statx {
-        todo!()
-    }
-
     fn get_file_type(&self) -> DiskInodeType {
-        DiskInodeType::from_char('-')
-        // DiskInodeType::File
+        DiskInodeType::File
     }
 
     fn info_dirtree_node(

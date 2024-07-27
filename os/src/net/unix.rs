@@ -12,7 +12,6 @@ use smoltcp::wire::IpEndpoint;
 
 use crate::mm::UserBuffer;
 use crate::fs::Stat;
-use crate::fs::Statx;
 use crate::fs::DiskInodeType;
 use alloc::sync::Weak;
 use crate::fs::directory_tree::DirectoryTreeNode;
@@ -20,7 +19,7 @@ use alloc::vec::Vec;
 use alloc::string::String;
 use crate::fs::Dirent;
 use crate::fs::SeekWhence;
-use crate::fs::PageCache;
+use crate::fs::fat32::PageCache;
 #[allow(unused)]
 pub struct UnixSocket<const N: usize> {
     //file_meta: FileMeta,
@@ -117,7 +116,6 @@ impl<const N: usize> File for UnixSocket<N> {
     fn write_user(&self, _offset: Option<usize>, _buf: UserBuffer) -> usize{todo!();}
     fn get_size(&self) -> usize{todo!();}
     fn get_stat(&self) -> Stat{todo!();}
-    fn get_statx(&self) -> Statx{todo!();}
     fn get_file_type(&self) -> DiskInodeType{todo!();}
     fn is_dir(&self) -> bool {todo!();}
     fn is_file(&self) -> bool {todo!();}

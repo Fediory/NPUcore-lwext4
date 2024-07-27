@@ -22,7 +22,7 @@ pub trait Cache {
     /// # Argument
     /// + `block_ids`: block ids in this cache
     /// + `block_device`: The pointer to the block_device.
-    fn sync(&self, _block_ids: Vec<u64>, _block_device: &Arc<dyn BlockDevice>) {}
+    fn sync(&self, _block_ids: Vec<usize>, _block_device: &Arc<dyn BlockDevice>) {}
 }
 
 const PRIORITY_UPPERBOUND: usize = 1;
@@ -45,7 +45,7 @@ pub struct BufferCache {
     /// When it's 0 and Arc's strong count is 1, this buffer will be writed back
     priority: usize,
     /// ***If block_id is usize::Max***, we assume it is an unused buffer.
-    block_id: u64,
+    block_id: usize,
     dirty: bool,
     buffer: &'static mut [u8; BUFFER_SIZE],
 }
@@ -82,12 +82,12 @@ impl BufferCache {
         let buffer = unsafe { buffer_ptr.as_mut().unwrap() };
         Self {
             priority: 0,
-            block_id: u64::MAX,
+            block_id: usize::MAX,
             dirty: false,
             buffer,
         }
     }
-    pub fn read_block(&mut self, block_id: u64, block_device: &Arc<dyn BlockDevice>) {
+    pub fn read_block(&mut self, block_id: usize, block_device: &Arc<dyn BlockDevice>) {
         self.block_id = block_id;
         let buf = self.buffer.as_mut();
         block_device.read_block(block_id, buf);
@@ -116,7 +116,7 @@ impl BlockCacheManager {
                     block_device.write_block(block_id, buf);
                     locked.dirty = false;
                 }
-                locked.block_id = u64::MAX;
+                locked.block_id = usize::MAX;
             }
         }
     }
@@ -124,7 +124,7 @@ impl BlockCacheManager {
         loop {
             for buffer_cache in &self.cache_pool {
                 let locked = buffer_cache.lock();
-                if locked.block_id == u64::MAX {
+                if locked.block_id == usize::MAX {
                     return buffer_cache.clone();
                 }
             }
@@ -152,7 +152,7 @@ impl BlockCacheManager {
             cache_pool,
         }
     }
-    pub fn try_get_block_cache(&self, block_id: u64) -> Option<Arc<Mutex<BufferCache>>> {
+    pub fn try_get_block_cache(&self, block_id: usize) -> Option<Arc<Mutex<BufferCache>>> {
         for buffer_cache in &self.cache_pool {
             let mut locked = buffer_cache.lock();
             if locked.block_id == block_id {
@@ -167,7 +167,7 @@ impl BlockCacheManager {
 
     pub fn get_block_cache(
         &self,
-        block_id: u64,
+        block_id: usize,
         block_device: &Arc<dyn BlockDevice>,
     ) -> Arc<Mutex<BufferCache>> {
         match self.try_get_block_cache(block_id) {
@@ -223,7 +223,7 @@ impl Cache for PageCache {
         })
     }
 
-    fn sync(&self, block_ids: Vec<u64>, block_device: &Arc<dyn BlockDevice>) {
+    fn sync(&self, block_ids: Vec<usize>, block_device: &Arc<dyn BlockDevice>) {
         let lock = KERNEL_SPACE.try_lock();
         match lock {
             Some(lock) => {
@@ -235,10 +235,6 @@ impl Cache for PageCache {
         }
         self.write_back(block_ids, block_device)
     }
-}
-
-fn convert_vec(vec_usize: Vec<usize>) -> Vec<u64> {
-    vec_usize.iter().map(|&value| value as u64).collect()
 }
 
 impl PageCache {
@@ -256,15 +252,15 @@ impl PageCache {
     pub fn get_tracker(&self) -> Arc<FrameTracker> {
         self.tracker.clone()
     }
-    pub fn read_in(&mut self, block_ids: Vec<u64>, block_device: &Arc<dyn BlockDevice>) {
+    pub fn read_in(&mut self, block_ids: Vec<usize>, block_device: &Arc<dyn BlockDevice>) {
         if block_ids.is_empty() {
             return;
         }
         assert!(block_ids.len() <= PAGE_BUFFERS);
 
-        let mut start_block_id = u64::MAX;
+        let mut start_block_id = usize::MAX;
         let mut con_length = 0;
-        let mut start_buf_id: u64 = 0;
+        let mut start_buf_id = 0;
         for block_id in block_ids.iter() {
             if con_length == 0 {
                 start_block_id = *block_id;
@@ -272,8 +268,8 @@ impl PageCache {
             } else if *block_id != start_block_id + con_length {
                 let buf = unsafe {
                     core::slice::from_raw_parts_mut(
-                        self.page_ptr.as_mut_ptr().add((start_buf_id * BUFFER_SIZE as u64) as usize),
-                        (con_length * BUFFER_SIZE as u64) as usize,
+                        self.page_ptr.as_mut_ptr().add(start_buf_id * BUFFER_SIZE),
+                        con_length * BUFFER_SIZE,
                     )
                 };
                 block_device.read_block(start_block_id, buf);
@@ -286,8 +282,8 @@ impl PageCache {
         }
         let buf = unsafe {
             core::slice::from_raw_parts_mut(
-                self.page_ptr.as_mut_ptr().add((start_buf_id * BUFFER_SIZE as u64) as usize),
-                (con_length * BUFFER_SIZE as u64) as usize,
+                self.page_ptr.as_mut_ptr().add(start_buf_id * BUFFER_SIZE),
+                con_length * BUFFER_SIZE,
             )
         };
         block_device.read_block(start_block_id, buf);
@@ -298,19 +294,19 @@ impl PageCache {
             .unwrap();
     }
 
-    pub fn write_back(&self, block_ids: Vec<u64>, block_device: &Arc<dyn BlockDevice>) {
+    pub fn write_back(&self, block_ids: Vec<usize>, block_device: &Arc<dyn BlockDevice>) {
         if block_ids.is_empty() {
             return;
         }
 
-        let mut start_block_id = u64::MAX;
-        let mut con_length:usize = 0;
+        let mut start_block_id = usize::MAX;
+        let mut con_length = 0;
         let mut start_buf_id = 0;
         for block_id in block_ids.iter() {
             if con_length == 0 {
                 start_block_id = *block_id;
                 con_length = 1;
-            } else if *block_id != start_block_id + con_length as u64 {
+            } else if *block_id != start_block_id + con_length {
                 let buf = unsafe {
                     core::slice::from_raw_parts(
                         self.page_ptr.as_ptr().add(start_buf_id * BUFFER_SIZE),
@@ -374,7 +370,7 @@ impl PageCacheManager {
         block_device: &Arc<dyn BlockDevice>,
     ) -> Arc<Mutex<PageCache>>
     where
-        FUNC: Fn() -> Vec<u64>,
+        FUNC: Fn() -> Vec<usize>,
     {
         crate::mm::frame_reserve(1);
         let mut lock = self.cache_pool.lock();
@@ -422,9 +418,8 @@ impl PageCacheManager {
                 inner_lock.priority -= 1;
                 new_allocated_cache.push(inner_cache_id);
             } else {
-                let mut block_ids = neighbor(inner_cache_id);
-                let block_ids_u64 = convert_vec(block_ids);
-                inner_lock.sync(block_ids_u64, block_device);
+                let block_ids = neighbor(inner_cache_id);
+                inner_lock.sync(block_ids, block_device);
                 dropped += 1;
                 drop(inner_lock);
                 lock[inner_cache_id] = None;

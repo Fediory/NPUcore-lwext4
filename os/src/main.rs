@@ -14,7 +14,6 @@
 #![test_runner(crate::test_runner)]
 #![feature(const_maybe_uninit_assume_init)]
 #![feature(trait_upcasting)]
-#![feature(c_size_t)]
 
 pub use arch::config;
 extern crate alloc;

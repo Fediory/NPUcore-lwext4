@@ -19,7 +19,6 @@ use smoltcp::{
 use alloc::sync::Arc;
 use crate::mm::UserBuffer;
 use crate::fs::Stat;
-use crate::fs::Statx;
 use crate::fs::DiskInodeType;
 use alloc::sync::Weak;
 use crate::fs::directory_tree::DirectoryTreeNode;
@@ -27,7 +26,7 @@ use alloc::vec::Vec;
 use alloc::string::String;
 use crate::fs::Dirent;
 use crate::fs::SeekWhence;
-use crate::fs::PageCache;
+use crate::fs::fat32::PageCache;
 
 pub struct UdpSocket {
     inner: Mutex<UdpSocketInner>,
@@ -253,7 +252,6 @@ impl File for UdpSocket {
     }
     fn get_size(&self) -> usize{todo!();}
     fn get_stat(&self) -> Stat{todo!();}
-    fn get_statx(&self) -> Statx{todo!();}
     fn get_file_type(&self) -> DiskInodeType{todo!();}
     fn is_dir(&self) -> bool {todo!();}
     fn is_file(&self) -> bool {todo!();}

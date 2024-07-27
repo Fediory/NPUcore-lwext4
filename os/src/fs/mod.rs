@@ -1,29 +1,30 @@
 mod cache;
 pub mod dev;
 pub mod directory_tree;
-// mod fat32;
-mod ext4_file;
+pub mod fat32;
 pub mod file_trait;
 mod filesystem;
-// mod inode;
 mod layout;
 pub mod poll;
 #[cfg(feature = "swap")]
 pub mod swap;
-// mod vfs;
 
-pub use self::dev::{hwclock::*, null::*, pipe::*, socket::*, tty::*, zero::*};
+pub use self::dev::{
+    hwclock::*, 
+    // null::*, 
+    pipe::*, 
+    // socket::*, tty::*, zero::*
+};
 use core::slice::{Iter, IterMut};
+// use crate::fs::ext4::Ext4FileSystem;
 
 pub use self::layout::*;
 
-pub trait BlockDevice: crate::drivers::block::BlockDevice {}
-pub type DiskInodeType = lwext4_rs::FileType;
-// pub use self::fat32::{BlockDevice, DiskInodeType};
+pub use self::fat32::{BlockDevice, DiskInodeType};
 
-pub use self::{cache::PageCache, directory_tree::DirectoryTreeNode, file_trait::File};
+use self::{cache::PageCache, directory_tree::DirectoryTreeNode, file_trait::File};
 use crate::{
-    config::{DEFAULT_FD_LIMIT, SYSTEM_FD_LIMIT},
+    config::SYSTEM_FD_LIMIT,
     mm::{Frame, UserBuffer},
     syscall::errno::*,
 };
@@ -33,7 +34,6 @@ use alloc::{
     vec::Vec,
 };
 use lazy_static::*;
-use log::warn;
 use spin::Mutex;
 
 lazy_static! {
@@ -326,7 +326,7 @@ pub struct FdTable {
 
 #[allow(unused)]
 impl FdTable {
-    pub const DEFAULT_FD_LIMIT: usize = DEFAULT_FD_LIMIT;
+    pub const DEFAULT_FD_LIMIT: usize = 128;
     pub const SYSTEM_FD_LIMIT: usize = SYSTEM_FD_LIMIT;
     pub fn new(inner: Vec<Option<FileDescriptor>>) -> Self {
         Self {
@@ -394,8 +394,6 @@ impl FdTable {
         match self.inner[fd].take() {
             Some(file_descriptor) => {
                 self.recycled.push(fd as u8);
-                // FIXME: shit here, replace this with balanced binary tree
-                self.recycled.sort_by(|a, b| b.cmp(a));
                 Ok(file_descriptor)
             }
             None => Err(EBADF),
@@ -417,17 +415,29 @@ impl FdTable {
         }
         Ok(())
     }
+    pub fn find_min(&mut self) -> Option<u8> {
+        if let Some(&min_value) = self.recycled.iter().min() {
+            if let Some(index) = self.recycled.iter().position(|&x| x == min_value) {
+                self.recycled.remove(index);
+                Some(min_value)
+            } else {
+                None
+            }
+        } else {
+            None
+        }
+    }
     #[inline]
     pub fn insert(&mut self, file_descriptor: FileDescriptor) -> Result<usize, isize> {
-        let fd = match self.recycled.pop() {
+        // 直接pop fd省事，但是初赛openat测例要求新的fd>旧的，改为find_min，每次取最小的fd
+        // let fd = match self.recycled.pop() {
+        let fd = match self.find_min(){
             Some(fd) => {
-                warn!("[fd_table_insert] recycle: {fd}");
                 self.inner[fd as usize] = Some(file_descriptor);
                 fd as usize
             }
             None => {
                 let current = self.inner.len();
-                warn!("[fd_table_insert] new: {current}");
                 if current == self.soft_limit {
                     return Err(EMFILE);
                 } else {

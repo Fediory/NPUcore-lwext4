@@ -6,8 +6,6 @@ mod memory_set;
 mod page_table;
 #[cfg(feature = "zram")]
 mod zram;
-use core::alloc::Layout;
-
 pub use crate::arch::KernelPageTableImpl;
 pub use crate::arch::PageTableImpl;
 use address::VPNRange;
@@ -16,14 +14,15 @@ pub use address::{PhysAddr, PhysPageNum, StepByOne, VirtAddr, VirtPageNum};
 pub use frame_allocator::{
     frame_alloc, frame_alloc_uninit, frame_dealloc, frame_reserve, unallocated_frames, FrameTracker,
 };
-use heap_allocator::HEAP_ALLOCATOR;
 pub use map_area::{Frame, MapFlags, MapPermission};
-pub use memory_set::{kernel_token, remap_test, MemoryError, MemorySet, KERNEL_SPACE};
+pub use memory_set::{
+    MemoryError, MemorySet, KERNEL_SPACE
+};
 pub use page_table::{
-    copy_from_user, copy_from_user_array, copy_to_user, copy_to_user_array, copy_to_user_debug,
-    copy_to_user_string, get_from_user, translated_byte_buffer,
-    translated_byte_buffer_append_to_existing_vec, translated_ref, translated_refmut,
-    translated_str, try_get_from_user, PageTable, UserBuffer, UserBufferIterator,
+    copy_from_user, copy_from_user_array, copy_to_user, copy_to_user_array, copy_to_user_string,
+    get_from_user, translated_byte_buffer, translated_byte_buffer_append_to_existing_vec,
+    translated_ref, translated_refmut, translated_str, try_get_from_user, PageTable, UserBuffer,
+    // UserBufferIterator,
 };
 
 pub fn init() {
@@ -71,13 +70,4 @@ macro_rules! ptr_to_opt_ref {
             None
         }
     };
-}
-
-#[no_mangle]
-pub extern "C" fn ext4_user_malloc(size: ::core::ffi::c_size_t) -> *mut ::core::ffi::c_void {
-    HEAP_ALLOCATOR
-        .lock()
-        .alloc(Layout::array::<u8>(size).unwrap())
-        .unwrap()
-        .as_ptr() as *mut ::core::ffi::c_void
 }

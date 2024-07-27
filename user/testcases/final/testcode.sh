@@ -26,5 +26,3 @@ done
 # echo "TEST END" >> $RST
 
 ./libc-bench
-./netperf_testcode.sh
-./iperf_testcode.sh

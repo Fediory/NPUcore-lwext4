@@ -57,10 +57,6 @@ impl File for Socket {
         todo!()
     }
 
-    fn get_statx(&self) -> crate::fs::Statx {
-        todo!()
-    }
-
     fn get_file_type(&self) -> DiskInodeType {
         todo!()
     }

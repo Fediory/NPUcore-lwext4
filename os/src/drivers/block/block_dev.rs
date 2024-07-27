@@ -12,7 +12,7 @@ pub trait BlockDevice: Send + Sync + Any {
     /// * `buf`: the buffer to store the coming data
     /// # Panic
     /// The function panics when the size of `buf` is not a multiple of BLOCK_SZ
-    fn read_block(&self, block_id: u64, buf: &mut [u8]);
+    fn read_block(&self, block_id: usize, buf: &mut [u8]);
 
     /// Write block into the file system.
     /// # Argument
@@ -20,17 +20,17 @@ pub trait BlockDevice: Send + Sync + Any {
     /// * `buf`: the buffer to store the coming data
     /// # Panic
     /// The function panics when the size of `buf` is not a multiple of BLOCK_SZ
-    fn write_block(&self, block_id: u64, buf: &[u8]);
+    fn write_block(&self, block_id: usize, buf: &[u8]);
 
     /// # Note
     /// *We should rewrite the API for K210 since it supports NATIVE multi-block clearing*
-    fn clear_block(&self, block_id: u64, num: u8) {
+    fn clear_block(&self, block_id: usize, num: u8) {
         self.write_block(block_id, &[num; BLOCK_SZ]);
     }
 
     /// # Note
     /// *We should rewrite the API for K210 if it supports NATIVE multi-block clearing*
-    fn clear_mult_block(&self, block_id: u64, cnt: u64, num: u8) {
+    fn clear_mult_block(&self, block_id: usize, cnt: usize, num: u8) {
         for i in block_id..block_id + cnt {
             self.write_block(i, &[num; BLOCK_SZ]);
         }
