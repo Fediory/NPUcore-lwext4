@@ -7,6 +7,9 @@ all:
 run:
 	cd os && make run
 
+mv:
+	cd os && make mv
+
 gdb:
 	cd os && make gdb
 
