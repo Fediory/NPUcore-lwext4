@@ -57,6 +57,10 @@ impl File for Urandom {
         )
     }
 
+    fn get_statx(&self) -> crate::fs::Statx {
+        todo!()
+    }
+
     fn read_user(&self, offset: Option<usize>, mut buf: UserBuffer) -> usize {
         buf.clear();
         buf.len()
@@ -67,7 +71,8 @@ impl File for Urandom {
     }
 
     fn get_file_type(&self) -> DiskInodeType {
-        DiskInodeType::File
+        // DiskInodeType::File
+        DiskInodeType::from_char('-')
     }
 
     fn info_dirtree_node(

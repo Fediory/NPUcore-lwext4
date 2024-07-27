@@ -25,14 +25,59 @@ impl MemBlockWrapper {
 }
 use log::info;
 impl BlockDevice for MemBlockWrapper {
-    fn read_block(&self, block_id: usize, buf: &mut [u8]) {
+    fn read_block(&self, block_id: u64, buf: &mut [u8]) {
         info!("[mem read_block] len : {}", buf.len());
         let blk = self.0.lock();
-        buf.copy_from_slice(blk.block_ref(block_id, buf.len()));
+        buf.copy_from_slice(blk.block_ref(block_id as usize, buf.len()));
     }
-    fn write_block(&self, block_id: usize, buf: &[u8]) {
+    fn write_block(&self, block_id: u64, buf: &[u8]) {
         info!("[mem write_block] len : {}", buf.len());
         let blk = self.0.lock();
-        blk.block_refmut(block_id, buf.len()).copy_from_slice(buf);
+        blk.block_refmut(block_id as usize, buf.len()).copy_from_slice(buf);
+    }
+}
+
+impl lwext4_rs::BlockDeviceInterface for MemBlockWrapper {
+    fn open(&mut self) -> lwext4_rs::Result<lwext4_rs::BlockDeviceConfig> {
+        Ok(lwext4_rs::BlockDeviceConfig {
+            block_size: BLOCK_SZ as u32,
+            block_count: 999,
+            part_size: BLOCK_SZ as u64 * 2,
+            part_offset: 0,
+        })
+    }
+
+    fn read_block(
+        &mut self,
+        buf: &mut [u8],
+        block_id: u64,
+        block_count: u32,
+    ) -> lwext4_rs::Result<usize> {
+        let blk = self.0.lock();
+        buf.copy_from_slice(blk.block_ref(block_id as usize, BLOCK_SZ * block_count as usize));
+        Ok(0)
+    }
+    fn write_block(
+        &mut self,
+        buf: &[u8],
+        block_id: u64,
+        block_count: u32,
+    ) -> lwext4_rs::Result<usize> {
+        let blk = self.0.lock();
+        blk.block_refmut(block_id as usize, BLOCK_SZ * block_count as usize)
+            .copy_from_slice(buf);
+        Ok(0)
+    }
+
+    fn close(&mut self) -> lwext4_rs::Result<()> {
+        Ok(())
+    }
+
+    fn lock(&mut self) -> lwext4_rs::Result<()> {
+        Ok(())
+    }
+
+    fn unlock(&mut self) -> lwext4_rs::Result<()> {
+        Ok(())
     }
 }

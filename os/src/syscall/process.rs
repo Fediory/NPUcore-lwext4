@@ -392,7 +392,8 @@ pub fn sys_sysinfo(info: *mut Sysinfo) -> isize {
     }
 }
 
-pub fn sys_sbrk(increment: isize) -> isize {
+#[no_mangle]
+pub extern "C" fn sys_sbrk(increment: isize) -> isize {
     let task = current_task().unwrap();
     let mut inner = task.acquire_inner_lock();
     let mut memory_set = task.vm.lock();
@@ -400,7 +401,8 @@ pub fn sys_sbrk(increment: isize) -> isize {
     inner.heap_pt as isize
 }
 
-pub fn sys_brk(brk_addr: usize) -> isize {
+#[no_mangle]
+pub extern "C" fn sys_brk(brk_addr: usize) -> isize {
     let task = current_task().unwrap();
     let mut inner = task.acquire_inner_lock();
     let mut memory_set = task.vm.lock();

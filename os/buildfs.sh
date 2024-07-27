@@ -24,10 +24,11 @@ echo
 echo Current arch: ${ARCH}
 echo
 "$SUDO" touch ${U_FAT32}
-"$SUDO" dd if=/dev/zero of=${U_FAT32} bs=1M count=200
+"$SUDO" dd if=/dev/zero of=${U_FAT32} bs=1M count=45
 echo Making fat32 image with BLK_SZ=${BLK_SZ}
 # "$SUDO" mkfs.vfat -F 32 ${U_FAT32} -S ${BLK_SZ}
-"$SUDO" mkfs.ext4 ${U_FAT32} -b ${BLK_SZ}
+"$SUDO" ../util/lwext4-mkfs -i ${U_EXT4} -b "2048" -e 4 -v
+# "$SUDO" mkfs.ext4 ${U_FAT32} -b ${BLK_SZ}
 "$SUDO" fdisk -l ${U_FAT32}
 
 if test -e ${U_FAT32_DIR}/fs
@@ -46,8 +47,8 @@ fi
 
 # build root
 "$SUDO" mkdir -p ${U_FAT32_DIR}/fs/bin
-"$SUDO" mkdir -p ${U_FAT32_DIR}/fs/final
-"$SUDO" mkdir -p ${U_FAT32_DIR}/fs/pre
+# "$SUDO" mkdir -p ${U_FAT32_DIR}/fs/final
+# "$SUDO" mkdir -p ${U_FAT32_DIR}/fs/pre
 
 try_copy(){
     if [ -d $1 ]
@@ -63,18 +64,19 @@ try_copy(){
 }
 
 # build customized syscalls
-if [ ! -f ${U_FAT32_DIR}/fs/syscall ]
-then    
-    "$SUDO" mkdir -p ${U_FAT32_DIR}/fs/user_syscall
-fi
+# if [ ! -f ${U_FAT32_DIR}/fs/syscall ]
+# then    
+#     "$SUDO" mkdir -p ${U_FAT32_DIR}/fs/user_syscall
+# fi
 
 for programname in $(ls ../user/src/bin)
 do
-    "$SUDO" cp -r ../user/target/${TARGET}/${MODE}/${programname%.rs} ${U_FAT32_DIR}/fs/user_syscall/${programname%.rs}
+    "$SUDO" cp -r ../user/target/${TARGET}/${MODE}/${programname%.rs} ${U_FAT32_DIR}/fs/${programname%.rs}
 done
 
 echo user_syscall copied.
-try_copy ../user/testcases ${U_FAT32_DIR}/fs/
+try_copy ../user/testcases/final ${U_FAT32_DIR}/fs/
+try_copy ../user/testcases/bin ${U_FAT32_DIR}/fs/bin
 
 "$SUDO" umount ${U_FAT32_DIR}/fs
 "$SUDO" dd if=${U_FAT32} of=${U_FAT32_DIR}/ext4.bin

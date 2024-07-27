@@ -19,7 +19,7 @@ use smoltcp::{
 };
 
 use crate::mm::UserBuffer;
-use crate::fs::Stat;
+use crate::fs::{Stat,Statx};
 use crate::fs::DiskInodeType;
 use alloc::sync::Weak;
 use crate::fs::directory_tree::DirectoryTreeNode;
@@ -27,7 +27,7 @@ use alloc::vec::Vec;
 use alloc::string::String;
 use crate::fs::Dirent;
 use crate::fs::SeekWhence;
-use crate::fs::fat32::PageCache;
+use crate::fs::PageCache;
 
 
 
@@ -358,6 +358,7 @@ impl File for TcpSocket {
     }
     fn get_size(&self) -> usize{todo!();}
     fn get_stat(&self) -> Stat{todo!();}
+    fn get_statx(&self) -> Statx{todo!();}
     fn get_file_type(&self) -> DiskInodeType{todo!();}
     fn is_dir(&self) -> bool {todo!();}
     fn is_file(&self) -> bool {todo!();}

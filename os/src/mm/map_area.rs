@@ -101,7 +101,7 @@ impl Frame {
                 let ppn = frame.ppn;
                 SWAP_DEVICE
                     .lock()
-                    .read(swap_tracker.0, ppn.get_bytes_array());
+                    .read(swap_tracker.0 as u64, ppn.get_bytes_array());
                 *self = Frame::InMemory(frame);
                 Ok(ppn)
             }
