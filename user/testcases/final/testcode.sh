@@ -24,5 +24,6 @@ do
 done
 
 # echo "TEST END" >> $RST
-
+./lua/lua_testcode.sh
 ./libc-bench
+./lmbench_testcode.sh
