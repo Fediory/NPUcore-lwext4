@@ -22,12 +22,12 @@ pub struct OpenOptions {
 impl OpenOptions {
     pub fn new() -> Self {
         Self {
-            read: false,
-            write: false,
-            append: false,
+            read: true,
+            write: true,
+            append: true,
             truncate: false,
-            create: false,
-            create_new: false,
+            create: true,
+            create_new: true,
             mode: 0o666,
         }
     }

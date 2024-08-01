@@ -42,7 +42,7 @@ impl lwext4_rs::BlockDeviceInterface for MemBlockWrapper {
         Ok(lwext4_rs::BlockDeviceConfig {
             block_size: BLOCK_SZ as u32,
             block_count: 999,
-            part_size: BLOCK_SZ as u64 * 2,
+            part_size: BLOCK_SZ as u64,
             part_offset: 0,
         })
     }

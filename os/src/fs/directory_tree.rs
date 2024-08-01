@@ -55,9 +55,9 @@ lazy_static! {
         FILE_SYSTEM.readdir("/").unwrap();
 
         let inode = DirectoryTreeNode::new(
-            "".to_string(),
+            "shit".to_string(),
             Arc::new(FileSystem::new(FS::Fat32)),
-            Arc::new(OpenOptions::new().read(true).write(true).open("/").unwrap()),
+            Arc::new(OpenOptions::new().open("/").unwrap()),
             // OSInode::new(Arc::new()),
             Weak::new(),
         );

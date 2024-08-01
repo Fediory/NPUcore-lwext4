@@ -807,7 +807,7 @@ static int __ext4_fs_get_inode_ref(struct ext4_fs *fs, uint32_t index,
 				  "Inode: %" PRIu32 "\n",
 			 ref->index);
 	}
-
+	os_log("inode 5");
 	return EOK;
 }
 

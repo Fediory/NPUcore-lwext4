@@ -485,13 +485,17 @@ static struct ext4_mountpoint *ext4_get_mount(const char *path)
 {
 	for (size_t i = 0; i < CONFIG_EXT4_MOUNTPOINTS_COUNT; ++i) {
 
-		if (!s_mp[i].mounted)
+		if (!s_mp[i].mounted){
+			// os_log("mountpoint continue");
 			continue;
+		}
 
-		if (!strncmp(s_mp[i].name, path, strlen(s_mp[i].name)))
+		if (!strncmp(s_mp[i].name, path, strlen(s_mp[i].name))){
+			// os_log("mountpoint return");
 			return &s_mp[i];
+		}
 	}
-
+	// os_log("mountpoint NULL");
 	return NULL;
 }
 
@@ -934,7 +938,7 @@ static int ext4_generic_open2(ext4_file *f, const char *path, int flags,
 	bool is_goal = false;
 	uint32_t imode = EXT4_INODE_MODE_DIRECTORY;
 	uint32_t next_inode;
-
+	
 	int r;
 	int len;
 	struct ext4_mountpoint *mp = ext4_get_mount(path);
@@ -1563,17 +1567,19 @@ int ext4_fopen2(ext4_file *file, const char *path, int flags)
 	struct ext4_mountpoint *mp = ext4_get_mount(path);
 	int r;
 	int filetype;
-
+	os_log("fopen2 1");
 	if (!mp)
 		return ENOENT;
 
 	filetype = EXT4_DE_REG_FILE;
+	os_log("fopen2 2");
 
 	EXT4_MP_LOCK(mp);
 	ext4_block_cache_write_back(mp->fs.bdev, 1);
 
 	if (flags & O_CREAT)
 		ext4_trans_start(mp);
+	os_log("fopen2 3");
 
 	r = ext4_generic_open2(file, path, flags, filetype, NULL, NULL);
 
@@ -1583,9 +1589,13 @@ int ext4_fopen2(ext4_file *file, const char *path, int flags)
 		else
 			ext4_trans_abort(mp);
 	}
+	os_log("fopen2 4");
 
 	ext4_block_cache_write_back(mp->fs.bdev, 0);
 	EXT4_MP_UNLOCK(mp);
+
+	os_log("fopen2 5");
+	os_var_log("r", r);
 
 	return r;
 }
@@ -2142,24 +2152,27 @@ int ext4_mode_set(const char *path, uint32_t mode)
 	uint32_t orig_mode;
 	struct ext4_inode_ref inode_ref;
 	struct ext4_mountpoint *mp = ext4_get_mount(path);
-
+	os_log("mode 1");
 	if (!mp)
 		return ENOENT;
 
 	if (mp->fs.read_only)
 		return EROFS;
 
+	os_log("mode 2");
 	EXT4_MP_LOCK(mp);
 
 	r = ext4_trans_get_inode_ref(path, mp, &inode_ref);
 	if (r != EOK)
 		goto Finish;
 
+	os_log("mode 3");
 	orig_mode = ext4_inode_get_mode(&mp->fs.sb, inode_ref.inode);
 	orig_mode &= ~0xFFF;
 	orig_mode |= mode & 0xFFF;
 	ext4_inode_set_mode(&mp->fs.sb, inode_ref.inode, orig_mode);
 
+	os_log("mode 4");
 	inode_ref.dirty = true;
 	r = ext4_trans_put_inode_ref(mp, &inode_ref);
 
