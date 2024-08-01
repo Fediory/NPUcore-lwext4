@@ -308,21 +308,6 @@ pub struct FdTable {
     hard_limit: usize,
 }
 
-// impl<I: core::slice::SliceIndex<[Option<FileDescriptor>]>> Index<I> for FdTable {
-//     type Output = I::Output;
-
-//     #[inline(always)]
-//     fn index(&self, index: I) -> &Self::Output {
-//         &self.inner[index]
-//     }
-// }
-
-// impl<I: core::slice::SliceIndex<[Option<FileDescriptor>]>> IndexMut<I> for FdTable {
-//     #[inline(always)]
-//     fn index_mut(&mut self, index: I) -> &mut Self::Output {
-//         &mut self.inner[index]
-//     }
-// }
 
 #[allow(unused)]
 impl FdTable {

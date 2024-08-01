@@ -3,7 +3,7 @@ use spin::Mutex;
 
 use crate::{arch::BLOCK_SZ, config::PAGE_SIZE, drivers::BLOCK_DEVICE};
 
-use super::directory_tree::FILE_SYSTEM;
+// use super::directory_tree::FILE_SYSTEM;
 use lazy_static::*;
 
 lazy_static! {

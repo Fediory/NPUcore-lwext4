@@ -57,7 +57,7 @@ lazy_static! {
         let inode = DirectoryTreeNode::new(
             "shit".to_string(),
             Arc::new(FileSystem::new(FS::Fat32)),
-            Arc::new(OpenOptions::new().open("/").unwrap()),
+            Arc::new(OpenOptions::new().open("/",false).unwrap()),
             // OSInode::new(Arc::new()),
             Weak::new(),
         );
@@ -117,9 +117,10 @@ impl DirectoryTreeNode {
     pub fn new(
         name: String,
         filesystem: Arc<FileSystem>,
-        file: Arc<dyn File>,
+        file: Arc<File>,
         father: Weak<Self>,
     ) -> Arc<Self> {
+        
         let node = Arc::new(DirectoryTreeNode {
             spe_usage: Mutex::new(0),
             name,
@@ -616,6 +617,7 @@ pub fn init_fs() {
     init_device_directory();
     init_tmp_directory();
     init_proc_directory();
+
 }
 #[allow(unused)]
 fn init_device_directory() {

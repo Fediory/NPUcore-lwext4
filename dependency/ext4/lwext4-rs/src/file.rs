@@ -104,8 +104,8 @@ impl OpenOptions {
 }
 
 pub struct File {
-    raw: ext4_file,
-    path: CName,
+    pub raw: ext4_file,
+    pub path: CName,
 }
 
 impl File {
@@ -254,7 +254,7 @@ impl Write for File {
 }
 
 impl OpenOptions {
-    pub fn open<P: AsRef<str>>(&self, path: P) -> Result<File> {
+    pub fn open<P: AsRef<str>>(&self, path: P, is_file: bool) -> Result<File> {
         let path = CName::new(path.as_ref().to_string())?;
         let mut raw_file = ext4_file {
             mp: null_mut(),
@@ -264,8 +264,15 @@ impl OpenOptions {
             fpos: 0,
         };
         let flags = self.get_access_mode()? | self.get_creation_mode()?;
-        unsafe {
-            errno_to_result(ext4_fopen2(&mut raw_file, path.as_ptr(), flags.bits() as _))?;
+        if is_file {
+            unsafe {
+                errno_to_result(ext4_fopen2(&mut raw_file, path.as_ptr(), flags.bits() as _))?;
+            }
+        }
+        else{
+            unsafe {
+                errno_to_result(ext4_fopen3(&mut raw_file, path.as_ptr(), flags.bits() as _))?;
+            }
         }
         // set mode
         if self.mode != 0o666 {

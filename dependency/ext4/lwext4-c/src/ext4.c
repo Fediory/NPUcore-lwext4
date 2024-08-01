@@ -1600,6 +1600,44 @@ int ext4_fopen2(ext4_file *file, const char *path, int flags)
 	return r;
 }
 
+int ext4_fopen3(ext4_file *file, const char *path, int flags)
+{
+	struct ext4_mountpoint *mp = ext4_get_mount(path);
+	int r;
+	int filetype;
+	os_log("fopen3 1");
+	if (!mp)
+		return ENOENT;
+
+	filetype = EXT4_DE_DIR;
+	os_log("fopen3 2");
+
+	EXT4_MP_LOCK(mp);
+	ext4_block_cache_write_back(mp->fs.bdev, 1);
+
+	if (flags & O_CREAT)
+		ext4_trans_start(mp);
+	os_log("fopen3 3");
+
+	r = ext4_generic_open2(file, path, flags, filetype, NULL, NULL);
+
+	if (flags & O_CREAT) {
+		if (r == EOK)
+			ext4_trans_stop(mp);
+		else
+			ext4_trans_abort(mp);
+	}
+	os_log("fopen3 4");
+
+	ext4_block_cache_write_back(mp->fs.bdev, 0);
+	EXT4_MP_UNLOCK(mp);
+
+	os_log("fopen3 5");
+	os_var_log("r", r);
+
+	return r;
+}
+
 int ext4_fclose(ext4_file *file)
 {
 	ext4_assert(file && file->mp);

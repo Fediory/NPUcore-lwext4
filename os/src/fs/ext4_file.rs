@@ -1,4 +1,6 @@
-use super::{file_trait::File, DiskInodeType};
+use embedded_io::Read;
+
+use super::{file_trait::File, DiskInodeType, layout::OpenFlags};
 
 impl File for lwext4_rs::File {
     fn deep_clone(&self) -> alloc::sync::Arc<dyn File> {
@@ -6,11 +8,11 @@ impl File for lwext4_rs::File {
     }
 
     fn readable(&self) -> bool {
-        todo!()
+        (self.raw.flags % 2) == 0
     }
 
     fn writable(&self) -> bool {
-        todo!()
+        (self.raw.flags % 2) == 1
     }
 
     fn read(&self, offset: Option<&mut usize>, buf: &mut [u8]) -> usize {
@@ -57,7 +59,7 @@ impl File for lwext4_rs::File {
         &self,
         dirnode_ptr: alloc::sync::Weak<super::directory_tree::DirectoryTreeNode>,
     ) {
-        todo!()
+        *self.raw.lock() = dirnode_ptr;
     }
 
     fn get_dirtree_node(
