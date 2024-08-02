@@ -121,7 +121,7 @@ impl<const N: usize> File for UnixSocket<N> {
     fn get_file_type(&self) -> DiskInodeType{todo!();}
     fn is_dir(&self) -> bool {todo!();}
     fn is_file(&self) -> bool {todo!();}
-    fn info_dirtree_node(&self, _dirnode_ptr: Weak<DirectoryTreeNode>){todo!();}
+    fn info_dirtree_node(&mut self, _dirnode_ptr: Weak<DirectoryTreeNode>){todo!();}
     fn get_dirtree_node(&self) -> Option<Arc<DirectoryTreeNode>>{todo!();}
     /// open
     fn open(&self, _flags: OpenFlags, _special_use: bool) -> Arc<dyn File>{todo!();}

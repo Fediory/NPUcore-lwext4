@@ -41,7 +41,7 @@ lazy_static! {
         false,
         false,
         self::directory_tree::ROOT
-            .open(".", OpenFlags::O_RDONLY | OpenFlags::O_DIRECTORY, true)
+            .open("/", OpenFlags::O_RDWR | OpenFlags::O_DIRECTORY, true)
             .unwrap()
     ));
 }

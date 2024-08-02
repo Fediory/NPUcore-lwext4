@@ -33,7 +33,7 @@ pub trait File: DowncastSync {
         self.get_file_type().is_file()
         // self.get_file_type() == DiskInodeType::File
     }
-    fn info_dirtree_node(&self, dirnode_ptr: Weak<DirectoryTreeNode>);
+    fn info_dirtree_node(&mut self, dirnode_ptr: Weak<DirectoryTreeNode>);
     fn get_dirtree_node(&self) -> Option<Arc<DirectoryTreeNode>>;
     /// open
     fn open(&self, flags: OpenFlags, special_use: bool) -> Arc<dyn File>;

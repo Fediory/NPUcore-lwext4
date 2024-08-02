@@ -104,13 +104,14 @@ impl OpenOptions {
 }
 
 pub struct File {
-    pub raw: ext4_file,
+    pub file: ext4_file,
     pub path: CName,
+    pub is_file: bool
 }
 
 impl File {
-    pub(super) fn new(raw: ext4_file, path: CName) -> Self {
-        Self { raw, path }
+    pub(super) fn new(file: ext4_file, path: CName, is_file: bool) -> Self {
+        Self { file, path, is_file }
     }
     /// Get the metadata of a file
     pub fn metadata(&self) -> Result<Metadata> {
@@ -120,7 +121,7 @@ impl File {
     /// Set the file size
     pub fn set_len(&mut self, size: u64) -> Result<()> {
         unsafe {
-            errno_to_result(ext4_ftruncate(&mut self.raw as _, size))?;
+            errno_to_result(ext4_ftruncate(&mut self.file as _, size))?;
         }
         Ok(())
     }
@@ -169,8 +170,8 @@ impl File {
 
     /// Get the file pointer position
     pub fn stream_position(&mut self) -> Result<u64> {
-        let pos = unsafe { ext4_ftell(&mut self.raw as _) };
-        assert_eq!(pos, self.raw.fpos);
+        let pos = unsafe { ext4_ftell(&mut self.file as _) };
+        assert_eq!(pos, self.file.fpos);
         Ok(pos)
     }
 
@@ -193,7 +194,7 @@ pub fn raw_metadata(path: &CName) -> Result<Metadata> {
 impl Drop for File {
     fn drop(&mut self) {
         unsafe {
-            errno_to_result(ext4_fclose(&mut self.raw)).unwrap();
+            errno_to_result(ext4_fclose(&mut self.file)).unwrap();
         }
     }
 }
@@ -210,9 +211,9 @@ impl Seek for File {
             SeekFrom::Current(offset) => (SEEK_CUR, offset),
         };
         unsafe {
-            errno_to_result(ext4_fseek(&mut self.raw as _, offset, origin))?;
+            errno_to_result(ext4_fseek(&mut self.file as _, offset, origin))?;
         }
-        Ok(self.raw.fpos)
+        Ok(self.file.fpos)
     }
 }
 
@@ -222,7 +223,7 @@ impl Read for File {
             let mut read = 0usize;
             let buf_size = buf.len();
             errno_to_result(ext4_fread(
-                &mut self.raw as _,
+                &mut self.file as _,
                 buf.as_mut_ptr() as _,
                 buf_size,
                 &mut read as _,
@@ -238,7 +239,7 @@ impl Write for File {
             let mut wrote = 0usize;
             let buf_size = buf.len();
             errno_to_result(ext4_fwrite(
-                &mut self.raw as _,
+                &mut self.file as _,
                 buf.as_ptr() as _,
                 buf_size,
                 &mut wrote as _,
@@ -281,8 +282,9 @@ impl OpenOptions {
             }
         }
         Ok(File {
-            raw: raw_file,
+            file: raw_file,
             path,
+            is_file
         })
     }
 }

@@ -117,11 +117,10 @@ impl DirectoryTreeNode {
     pub fn new(
         name: String,
         filesystem: Arc<FileSystem>,
-        file: Arc<File>,
+        file: Arc<dyn File>,
         father: Weak<Self>,
     ) -> Arc<Self> {
-        
-        let node = Arc::new(DirectoryTreeNode {
+        let mut dt = DirectoryTreeNode {
             spe_usage: Mutex::new(0),
             name,
             filesystem,
@@ -129,17 +128,15 @@ impl DirectoryTreeNode {
             selfptr: Mutex::new(Weak::new()),
             father: Mutex::new(father),
             children: RwLock::new(None),
-        });
+        };
+        let node = Arc::new(dt);
         *node.selfptr.lock() = Arc::downgrade(&node);
-        node.file.info_dirtree_node(Arc::downgrade(&node));
+        // dt.file.info_dirtree_node(&node);
         insert_directory_vec(Arc::downgrade(&node));
         node
     }
     pub fn add_special_use(&self) {
         *self.spe_usage.lock() += 1;
-    }
-    pub fn sub_special_use(&self) {
-        *self.spe_usage.lock() -= 1;
     }
     pub fn get_cwd(&self) -> String {
         let mut pathv = Vec::<String>::with_capacity(8);
@@ -623,54 +620,54 @@ pub fn init_fs() {
 fn init_device_directory() {
     ROOT.mkdir("/dev");
 
-    let dev_inode = match ROOT.cd_path("/dev") {
-        Ok(inode) => inode,
-        Err(_) => panic!("dev directory doesn't exist"),
-    };
+    // let dev_inode = match ROOT.cd_path("/dev") {
+    //     Ok(inode) => inode,
+    //     Err(_) => panic!("dev directory doesn't exist"),
+    // };
 
-    dev_inode.mkdir("shm");
-    dev_inode.mkdir("misc");
+    // dev_inode.mkdir("shm");
+    // dev_inode.mkdir("misc");
 
-    let null_dev = DirectoryTreeNode::new(
-        "null".to_string(),
-        Arc::new(FileSystem::new(FS::Null)),
-        Arc::new(Null {}),
-        Arc::downgrade(&dev_inode.get_arc()),
-    );
-    let zero_dev = DirectoryTreeNode::new(
-        "zero".to_string(),
-        Arc::new(FileSystem::new(FS::Null)),
-        Arc::new(Zero {}),
-        Arc::downgrade(&dev_inode.get_arc()),
-    );
-    let tty_dev = DirectoryTreeNode::new(
-        "tty".to_string(),
-        Arc::new(FileSystem::new(FS::Null)),
-        Arc::new(Teletype::new()),
-        Arc::downgrade(&dev_inode.get_arc()),
-    );
-    let mut lock = dev_inode.children.write();
-    lock.as_mut().unwrap().insert("null".to_string(), null_dev);
-    lock.as_mut().unwrap().insert("zero".to_string(), zero_dev);
-    lock.as_mut().unwrap().insert("tty".to_string(), tty_dev);
-    drop(lock);
+    // let null_dev = DirectoryTreeNode::new(
+    //     "null".to_string(),
+    //     Arc::new(FileSystem::new(FS::Null)),
+    //     Arc::new(Null {}),
+    //     Arc::downgrade(&dev_inode.get_arc()),
+    // );
+    // let zero_dev = DirectoryTreeNode::new(
+    //     "zero".to_string(),
+    //     Arc::new(FileSystem::new(FS::Null)),
+    //     Arc::new(Zero {}),
+    //     Arc::downgrade(&dev_inode.get_arc()),
+    // );
+    // let tty_dev = DirectoryTreeNode::new(
+    //     "tty".to_string(),
+    //     Arc::new(FileSystem::new(FS::Null)),
+    //     Arc::new(Teletype::new()),
+    //     Arc::downgrade(&dev_inode.get_arc()),
+    // );
+    // let mut lock = dev_inode.children.write();
+    // lock.as_mut().unwrap().insert("null".to_string(), null_dev);
+    // lock.as_mut().unwrap().insert("zero".to_string(), zero_dev);
+    // lock.as_mut().unwrap().insert("tty".to_string(), tty_dev);
+    // drop(lock);
 
-    let misc_inode = match dev_inode.cd_path("./misc") {
-        Ok(inode) => inode,
-        Err(_) => panic!("misc directory doesn't exist"),
-    };
-    let hwclock_dev = DirectoryTreeNode::new(
-        "rtc".to_string(),
-        Arc::new(FileSystem::new(FS::Null)),
-        Arc::new(Hwclock {}),
-        Arc::downgrade(&misc_inode.get_arc()),
-    );
-    let mut lock = misc_inode.children.write();
-    misc_inode.cache_all_subfile(&mut lock);
-    lock.as_mut()
-        .unwrap()
-        .insert("rtc".to_string(), hwclock_dev);
-    drop(lock);
+    // let misc_inode = match dev_inode.cd_path("./misc") {
+    //     Ok(inode) => inode,
+    //     Err(_) => panic!("misc directory doesn't exist"),
+    // };
+    // let hwclock_dev = DirectoryTreeNode::new(
+    //     "rtc".to_string(),
+    //     Arc::new(FileSystem::new(FS::Null)),
+    //     Arc::new(Hwclock {}),
+    //     Arc::downgrade(&misc_inode.get_arc()),
+    // );
+    // let mut lock = misc_inode.children.write();
+    // misc_inode.cache_all_subfile(&mut lock);
+    // lock.as_mut()
+    //     .unwrap()
+    //     .insert("rtc".to_string(), hwclock_dev);
+    // drop(lock);
 }
 fn init_tmp_directory() {
     match ROOT.mkdir("/tmp") {

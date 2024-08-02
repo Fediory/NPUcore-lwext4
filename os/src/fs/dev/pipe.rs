@@ -383,7 +383,7 @@ impl File for Pipe {
         DiskInodeType::from_char('-')
     }
 
-    fn info_dirtree_node(&self, dirnode_ptr: Weak<crate::fs::directory_tree::DirectoryTreeNode>) {
+    fn info_dirtree_node(&mut self, dirnode_ptr: Weak<crate::fs::directory_tree::DirectoryTreeNode>) {
         todo!()
     }
 

@@ -1,6 +1,6 @@
 use embedded_io::Read;
 
-use super::{file_trait::File, DiskInodeType, layout::OpenFlags};
+use super::{file_trait::File, DiskInodeType, layout::StatMode};
 
 impl File for lwext4_rs::File {
     fn deep_clone(&self) -> alloc::sync::Arc<dyn File> {
@@ -8,11 +8,11 @@ impl File for lwext4_rs::File {
     }
 
     fn readable(&self) -> bool {
-        (self.raw.flags % 2) == 0
+        (self.file.flags % 2) == 0
     }
 
     fn writable(&self) -> bool {
-        (self.raw.flags % 2) == 1
+        (self.file.flags % 2) == 1
     }
 
     fn read(&self, offset: Option<&mut usize>, buf: &mut [u8]) -> usize {
@@ -52,19 +52,20 @@ impl File for lwext4_rs::File {
     }
 
     fn get_file_type(&self) -> DiskInodeType {
-        todo!()
+        DiskInodeType::from_char('-')
     }
 
     fn info_dirtree_node(
-        &self,
+        &mut self,
         dirnode_ptr: alloc::sync::Weak<super::directory_tree::DirectoryTreeNode>,
     ) {
-        *self.raw.lock() = dirnode_ptr;
+        self.file.inode = dirnode_ptr.as_ptr() as u32;
     }
 
     fn get_dirtree_node(
         &self,
     ) -> Option<alloc::sync::Arc<super::directory_tree::DirectoryTreeNode>> {
+        // alloc::sync::Arc::new(self.dir.de.inode as *const u32)
         todo!()
     }
 

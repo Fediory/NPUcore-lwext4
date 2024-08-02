@@ -34,7 +34,7 @@ impl ReadDir {
     }
     /// Use the directory as file
     pub fn as_file(&self) -> File {
-        File::new(self.raw.f.clone(), self.path.clone())
+        File::new(self.raw.f.clone(), self.path.clone(), true)
     }
     /// Get the directory path
     pub fn path(&self) -> String {

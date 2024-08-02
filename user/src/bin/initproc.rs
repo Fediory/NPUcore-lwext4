@@ -32,14 +32,14 @@ fn main() -> i32 {
     let pid = fork();
     if pid == 0 {
         // 只启动bash
-        // exec(path, &[path.as_ptr() as *const u8, core::ptr::null()], &environ);
+        exec(path, &[path.as_ptr() as *const u8, core::ptr::null()], &environ);
         // 执行初赛测例
         // exec(path, &[path.as_ptr() as *const u8, "-c\0".as_ptr(), "./run-all.sh\0".as_ptr(), core::ptr::null()], &environ);
         // 执行netperf测例
         // exec(path, &[path.as_ptr() as *const u8, "-c\0".as_ptr(), "./netperf_testcode.sh\0".as_ptr(), core::ptr::null()], &environ);
         // exec(path, &[path.as_ptr() as *const u8, "-c\0".as_ptr(), "./iperf_testcode.sh\0".as_ptr(), core::ptr::null()], &environ);
         // exec(path, &[path.as_ptr() as *const u8, "-c\0".as_ptr(), "./time-test\0".as_ptr(), core::ptr::null()], &environ);
-        exec(path, &[path.as_ptr() as *const u8, "-c\0".as_ptr(), "./testcode.sh\0".as_ptr(), core::ptr::null()], &environ);
+        // exec(path, &[path.as_ptr() as *const u8, "-c\0".as_ptr(), "./testcode.sh\0".as_ptr(), core::ptr::null()], &environ);
     } else {
         waitpid(pid as usize, &mut exit_code);
     }

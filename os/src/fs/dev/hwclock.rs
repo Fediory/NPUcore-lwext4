@@ -61,7 +61,7 @@ impl File for Hwclock {
     }
 
     fn info_dirtree_node(
-        &self,
+        &mut self,
         dirnode_ptr: alloc::sync::Weak<crate::fs::directory_tree::DirectoryTreeNode>,
     ) {
     }
