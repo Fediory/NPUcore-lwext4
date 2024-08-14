@@ -124,6 +124,36 @@ pub fn sys_kill(pid: usize, sig: usize) -> isize {
     }
 }
 
+pub fn sys_tgkill(tgid: usize, tid: usize, sig: usize) -> isize {
+    let signal = match Signals::from_signum(sig) {
+        Ok(signal) => signal,
+        Err(_) => return EINVAL,
+    };
+    if tid > 0 {
+        if let Some(task) = find_task_by_tgid(tgid) {
+            if !signal.is_empty() {
+                let mut inner = task.acquire_inner_lock();
+                inner.add_signal(signal);
+                // wake up target process if it is sleeping
+                if inner.task_status == TaskStatus::Interruptible {
+                    inner.task_status = TaskStatus::Ready;
+                    drop(inner);
+                    wake_interruptible(task);
+                }
+            }
+            SUCCESS
+        } else {
+            ESRCH
+        }
+    } else if tid == 0 {
+        todo!()
+    } else if (tid as isize) == -1 {
+        todo!()
+    } else {
+        todo!()
+    }
+}
+
 pub fn sys_tkill(tid: usize, sig: usize) -> isize {
     let signal = match Signals::from_signum(sig) {
         Ok(signal) => signal,
@@ -507,6 +537,19 @@ pub fn sys_clone(
     // add new task to scheduler
     add_task(child);
     new_pid as isize
+}
+
+/// # Explanation of Parameters
+/// Mainly about `ptid`, `tls` and `ctid`: \
+/// `CLONE_SETTLS`: The TLS (Thread Local Storage) descriptor is set to `tls`. \
+/// `CLONE_PARENT_SETTID`: Store the child thread ID at the location pointed to by `ptid` in the parent's memory. \
+/// `CLONE_CHILD_SETTID`: Store the child thread ID at the location pointed to by `ctid` in the child's memory. \
+/// `ptid` is also used in `CLONE_PIDFD` (since Linux 5.2) \
+/// Since user programs rarely use these, we could do lazy implementation.
+pub fn sys_clone3(
+    flags: u32,
+) -> isize {
+    SUCCESS
 }
 
 pub fn sys_execve(
@@ -996,6 +1039,10 @@ pub fn sys_clock_gettime(clk_id: usize, tp: *mut TimeSpec) -> isize {
     SUCCESS
 }
 
+pub fn sys_clock_nanosleep(a: usize, b: usize, c: usize, d:usize) -> isize {
+    SUCCESS
+}
+
 // int sigaction(int signum, const struct sigaction *act, struct sigaction *oldact);
 pub fn sys_sigaction(signum: usize, act: usize, oldact: usize) -> isize {
     trace!(
@@ -1022,6 +1069,10 @@ pub fn sys_sigtimedwait(set: usize, info: usize, timeout: usize) -> isize {
         info as *mut SigInfo,
         timeout as *const TimeSpec,
     )
+}
+
+pub fn sys_return_success() -> isize{
+    SUCCESS
 }
 
 pub fn sys_sigreturn() -> isize {

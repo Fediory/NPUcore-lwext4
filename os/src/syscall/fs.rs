@@ -12,9 +12,9 @@ use alloc::boxed::Box;
 use alloc::string::String;
 use alloc::vec::Vec;
 use core::mem::size_of;
-use log::{debug, info, trace, warn};
+use log::{debug, info, trace, warn, error};
 use num_enum::FromPrimitive;
-
+use alloc::{sync::Arc, vec};
 use super::errno::*;
 
 pub const AT_FDCWD: usize = 100usize.wrapping_neg();
@@ -832,6 +832,69 @@ pub fn sys_openat(dirfd: usize, path: *const u8, flags: u32, mode: u32) -> isize
         Err(errno) => return errno,
     };
     new_fd as isize
+}
+
+pub fn sys_copy_file_range(
+    fd_in: usize,
+    mut off_in_ptr: usize,
+    fd_out: usize,
+    mut off_out_ptr: usize,
+    len: usize,
+    _flag: usize,
+) -> isize {
+    error!(
+        "copy_file_range: {:?} {:?} {:?} {:?} {:?}",
+        fd_in, off_in_ptr, fd_out, off_out_ptr, len
+    );
+    let in_offset: &mut usize = &mut off_in_ptr;
+    let out_offset: &mut usize = &mut off_out_ptr;
+    let task = current_task().unwrap();
+    // let token = task.get_user_token();
+    let old_file_descriptor = match fd_in {
+        AT_FDCWD => task.fs.lock().working_inode.as_ref().clone(),
+        fd => {
+            let fd_table = task.files.lock();
+            match fd_table.get_ref(fd) {
+                Ok(file_descriptor) => file_descriptor.clone(),
+                Err(errno) => return errno,
+            }
+        }
+    };
+    let new_file_descriptor = match fd_out {
+        AT_FDCWD => task.fs.lock().working_inode.as_ref().clone(),
+        fd => {
+            let fd_table = task.files.lock();
+            match fd_table.get_ref(fd) {
+                Ok(file_descriptor) => file_descriptor.clone(),
+                Err(errno) => return errno,
+            }
+        }
+    };
+    if !(old_file_descriptor.readable() && new_file_descriptor.writable()) {
+        error!("cannot copy files");
+        return EBADF;
+    }
+    let mut buf = vec![0u8; len];
+    let r = if *in_offset == 0 {
+        old_file_descriptor.read(Some(&mut 0usize), &mut buf)
+    } else {
+        // offset 非零则要求不更新实际文件，更新这个用户给的值
+        // let off_in_ptr = token.(off_in_ptr as *mut u64);
+        let nr = old_file_descriptor.read(Some(in_offset), &mut buf);
+        *in_offset += nr as usize;
+        nr
+    };
+    error!("sys_copy_file_range: read {} bytes from in_file", r);
+    let w = if *out_offset == 0 {
+        new_file_descriptor.write(Some(&mut 0usize), &buf[..r])
+    } else {
+        // let off_out_ptr = task.transfer_raw_ptr(off_out_ptr as *mut u64);
+        let wr = new_file_descriptor.write(Some(out_offset), &buf[..r]);
+        *out_offset += wr;
+        wr
+    };
+    error!("sys_copy_file_range: write {} bytes to out_file", w);
+    w as isize
 }
 
 pub fn sys_renameat2(

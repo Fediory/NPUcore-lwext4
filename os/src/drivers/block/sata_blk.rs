@@ -103,6 +103,7 @@ unsafe fn enable(loc: Location) {
 
 pub fn pci_init() -> Option<AHCI<Provider>> {
     for dev in unsafe {
+        info!("enter scan bus");
         scan_bus(
             &UnusedPort,
             CSpaceAccessMethod::MemoryMapped,

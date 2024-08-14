@@ -89,6 +89,7 @@ fn move_to_high_address() {
 pub fn rust_main() -> ! {
     bootstrap_init();
     mem_clear();
+    println!("NPUcore-IMPACT ENTER!!!");
     #[cfg(feature = "block_mem")]
     move_to_high_address();
     console::log_init();
