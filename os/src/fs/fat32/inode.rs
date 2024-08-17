@@ -85,6 +85,7 @@ impl File for OSInode {
     /// # Warning
     /// Buffer must be in kernel space
     fn read(&self, offset: Option<&mut usize>, buffer: &mut [u8]) -> usize {
+        log::info!("read at OSInode");
         match offset {
             Some(offset) => {
                 let len = self.inner.read_at_block_cache(*offset, buffer);

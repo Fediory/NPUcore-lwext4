@@ -1,0 +1,1 @@
+/home/greenhandzpx/code/oscomp/oscomp-testsuits-loongarch/lmbench/bin/loongarch64/lmbench_all hello "$@"

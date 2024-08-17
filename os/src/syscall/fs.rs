@@ -842,7 +842,7 @@ pub fn sys_copy_file_range(
     len: usize,
     _flag: usize,
 ) -> isize {
-    error!(
+    info!(
         "copy_file_range: {:?} {:?} {:?} {:?} {:?}",
         fd_in, off_in_ptr, fd_out, off_out_ptr, len
     );
@@ -884,7 +884,7 @@ pub fn sys_copy_file_range(
         *in_offset += nr as usize;
         nr
     };
-    error!("sys_copy_file_range: read {} bytes from in_file", r);
+    info!("sys_copy_file_range: read {} bytes from in_file", r);
     let w = if *out_offset == 0 {
         new_file_descriptor.write(Some(&mut 0usize), &buf[..r])
     } else {
@@ -893,7 +893,7 @@ pub fn sys_copy_file_range(
         *out_offset += wr;
         wr
     };
-    error!("sys_copy_file_range: write {} bytes to out_file", w);
+    info!("sys_copy_file_range: write {} bytes to out_file", w);
     w as isize
 }
 

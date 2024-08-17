@@ -394,6 +394,7 @@ impl FdTable {
         match self.inner[fd].take() {
             Some(file_descriptor) => {
                 self.recycled.push(fd as u8);
+                // self.recycled.sort_by(|a,b|b.cmp(a));
                 Ok(file_descriptor)
             }
             None => Err(EBADF),

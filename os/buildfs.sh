@@ -24,7 +24,7 @@ echo
 echo Current arch: ${ARCH}
 echo
 "$SUDO" touch ${U_FAT32}
-"$SUDO" dd if=/dev/zero of=${U_FAT32} bs=1M count=48
+"$SUDO" dd if=/dev/zero of=${U_FAT32} bs=1M count=45
 echo Making fat32 image with BLK_SZ=${BLK_SZ}
 "$SUDO" mkfs.vfat -F 32 ${U_FAT32} -S ${BLK_SZ}
 # "$SUDO" ../util/lwext4-mkfs -i ${U_EXT4} -b "2048" -e 4 -v
