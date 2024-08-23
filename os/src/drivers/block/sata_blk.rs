@@ -75,7 +75,7 @@ impl provider::Provider for Provider {
 
 // 扫描pci设备
 // 查看手册得知，配置空间位于 0xFE_0000_0000
-const PCI_CONFIG_ADDRESS: usize = 0xFE_0000_0000;
+const PCI_CONFIG_ADDRESS: usize = 0x8000_00FE_0000_0000;
 const PCI_COMMAND: u16 = 0x04;
 
 struct UnusedPort;
